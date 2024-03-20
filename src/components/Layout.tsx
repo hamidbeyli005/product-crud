@@ -1,12 +1,12 @@
-import { ReactNode } from "react"
 import Navbar from "./Navbar"
+import { Outlet } from "react-router-dom"
 
-const Layout: React.FC<{ children: ReactNode }> = ({ children }) => {
+const Layout = () => {
     return (
         <div>
             <Navbar />
             <main className="mt-32 md:mt-16">
-                {children}
+                <Outlet />
             </main>
         </div>
     )
