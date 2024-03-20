@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
 export interface IProduct {
   id: number;
@@ -38,70 +38,51 @@ export const categorySlice = createSlice({
   name: "categories",
   initialState,
   reducers: {
-    addProduct: (state, action) => {
+    addProduct: (state, action: PayloadAction<{ categoryId: number, product: IProduct }>) => {
       const { categoryId, product } = action.payload;
-      console.log(categoryId, product);
       const category = state.find((category) => category.id === categoryId);
 
       if (category) {
         category.products.push(product);
       }
     },
-    removeProduct: (state, action) => {
+    removeProduct: (state, action: PayloadAction<{ categoryId: number, productId: number }>) => {
       const { categoryId, productId } = action.payload;
-      const categoryIndex = state.findIndex(
-        (category) => category.id === categoryId
-      );
+      const category = state.find((category) => category.id === categoryId);
 
-      if (categoryIndex !== -1) {
-        state[categoryIndex].products = state[categoryIndex].products.filter(
-          (product) => {
-            return product.id !== productId;
-          }
-        );
+      if (category) {
+        category.products = category.products.filter(product => product.id !== productId);
       }
     },
-    updateProduct: (state, action) => {
-      const { categoryId, productId, updatedProduct } = action.payload;
-      const oldCategory = state.find((category) =>
-        category.products.some((product) => product.id == productId)
-      );
-      if (!oldCategory) {
-        console.error(`Category with product id ${productId} not found.`);
-        return;
+    updateProduct: (state, action: PayloadAction<{oldCategoryId:number, newCategoryId: number, productId: number, updatedProduct: IProduct }>) => {
+      const { oldCategoryId, newCategoryId, productId, updatedProduct } = action.payload;
+      const oldCategory = state.find(category => category.id === oldCategoryId);
+      const newCategory = state.find(category => category.id === newCategoryId);
+
+      if (!oldCategory || !newCategory) {
+        throw new Error(`Category or product not found`);
       }
-      const productIndex = oldCategory.products.findIndex(
-        (product) => product.id === productId
-      );
+
+      const productIndex = oldCategory.products.findIndex(product => product.id == productId);
+
       if (productIndex === -1) {
-        console.error(
-          `Product with id ${productId} not found in category ${oldCategory.id}.`
-        );
-        return;
+        throw new Error(`Product not found in category`);
       }
-      const removedProduct = oldCategory.products.splice(productIndex, 1)[0];
-      const newCategory = state.find((category) => category.id === categoryId);
-      if (!newCategory) {
-        console.error(`Category with id ${categoryId} not found.`);
-        oldCategory.products.splice(productIndex, 0, removedProduct);
-        return;
-      }
+
+      oldCategory.products.splice(productIndex, 1);
       newCategory.products.push(updatedProduct);
     },
-
-    addCategory: (state, action) => {
+    addCategory: (state, action: PayloadAction<ICategory>) => {
       state.push(action.payload);
     },
-    updateCategory(state, action) {
-      const index = state.findIndex(
-        (product) => product.id === action.payload.id
-      );
+    updateCategory: (state, action: PayloadAction<ICategory>) => {
+      const index = state.findIndex(category => category.id === action.payload.id);
       if (index !== -1) {
         state[index] = action.payload;
       }
     },
-    removeCategory: (state, action) => {
-      return state.filter((category) => category.id !== action.payload);
+    removeCategory: (state, action: PayloadAction<number>) => {
+      return state.filter(category => category.id !== action.payload);
     },
   },
 });
